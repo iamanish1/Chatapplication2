@@ -74,6 +74,12 @@
             color: white;
         }
 
+        button#clear-btn {
+            background-color: #ff9800;
+            color: white;
+            width: 100%;
+        }
+
         .voice-message {
             display: flex;
             align-items: center;
@@ -97,6 +103,8 @@
             <button id="cancel-btn" disabled>Cancel</button>
             <button id="send-btn" disabled>Send</button>
         </div>
+
+        <button id="clear-btn">Clear Storage</button>
     </div>
 
     <script>
@@ -105,6 +113,7 @@
         const cancelBtn = document.getElementById('cancel-btn');
         const sendBtn = document.getElementById('send-btn');
         const chatBox = document.getElementById('chat-box');
+        const clearBtn = document.getElementById('clear-btn');
 
         // Variables to manage recording
         let mediaRecorder;
@@ -114,10 +123,10 @@
 
         // Retrieve stored voice notes from localStorage on page load
         window.onload = function() {
-            const storedAudio = localStorage.getItem('voiceNote');
-            if (storedAudio) {
-                displayVoiceNote(storedAudio);
-            }
+            const storedAudio = JSON.parse(localStorage.getItem('voiceNotes')) || [];
+            storedAudio.forEach(url => {
+                displayVoiceNote(url);  // Display each stored voice note
+            });
         }
 
         // Event listener for the "Record" button
@@ -137,8 +146,10 @@
                         audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                         audioURL = URL.createObjectURL(audioBlob);
 
-                        // Store the audio in localStorage
-                        localStorage.setItem('voiceNote', audioURL);
+                        // Store the audio in localStorage (store as array)
+                        const storedAudio = JSON.parse(localStorage.getItem('voiceNotes')) || [];
+                        storedAudio.push(audioURL);
+                        localStorage.setItem('voiceNotes', JSON.stringify(storedAudio));
 
                         // Enable send button
                         sendBtn.disabled = false;
@@ -167,13 +178,17 @@
             if (audioURL) {
                 // Add the recorded voice note to the chat box
                 displayVoiceNote(audioURL);
-
-                // Remove the stored voice note from localStorage after sending
-                localStorage.removeItem('voiceNote');
             }
 
             // Reset the buttons after sending
             resetButtons();
+        });
+
+        // Event listener for the "Clear Storage" button
+        clearBtn.addEventListener('click', () => {
+            // Clear the localStorage and the chat box
+            localStorage.removeItem('voiceNotes');
+            chatBox.innerHTML = ''; // Clear the chat box
         });
 
         // Function to display the voice note in the chat box
