@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="button-memories">
+   <a href="memories.html"><button class="button-style">Sharing Memories</button></a>
+  </div>
+  <div class="button-memories">
+    <a href="voice.html"><button class="button-style">Sharing Voice</button></a>
+   </div>
+  
+   <div class="person-selector">
+    <button class="button person-selector-button active-person" id="tashu-selector">Tashu</button>
+    <button class="button person-selector-button" id="anish-selector">Anish</button>
+   </div> 
+   <div class="chat-container">
+    <h2 class="chat-header">Tashu Chatting...</h2>
+
+    <div class="chat-messages">
+        <div class="message blue-bg">
+          <div class="message-sender">Tashu</div>
+          <div class="message-text">Hey Tashu what's up?</div>
+          <div class="message-timestamp">10:30 AM</div>
+        </div>
+        <div class="message gray-bg">
+          <div class="message-sender">Anish</div>
+          <div class="message-text">Not much, just living the dream. How about you?</div>
+          <div class="message-timestamp">10:35 AM</div>
+        </div>
+    </div>
+    <form class="chat-input-form">
+        <input type="text" class="chat-input" required placeholder="Type here, Tashu..." />
+        <button type="submit" class="button send-button">Send</button>
+      </form>
+      <button class="button clear-chat-button">Clear Chat</button>
+    </div>
+
+ </div>
+ <script src="app.js"></script>
+</body>
+</html>

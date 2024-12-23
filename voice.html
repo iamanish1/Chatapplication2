@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Chat Feature with LocalStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        .chat-container {
+            width: 300px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h3 {
+            text-align: center;
+        }
+
+        .chat-box {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .voice-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        button#record-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button#cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        button#send-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .voice-message {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .voice-message audio {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h3>Voice Chat</h3>
+        <div class="chat-box" id="chat-box">
+            <!-- Voice messages will appear here -->
+        </div>
+
+        <div class="voice-controls">
+            <button id="record-btn">Record</button>
+            <button id="cancel-btn" disabled>Cancel</button>
+            <button id="send-btn" disabled>Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Accessing DOM elements
+        const recordBtn = document.getElementById('record-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const sendBtn = document.getElementById('send-btn');
+        const chatBox = document.getElementById('chat-box');
+
+        // Variables to manage recording
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let audioURL;
+
+        // Retrieve stored voice notes from localStorage on page load
+        window.onload = function() {
+            const storedAudio = localStorage.getItem('voiceNote');
+            if (storedAudio) {
+                displayVoiceNote(storedAudio);
+            }
+        }
+
+        // Event listener for the "Record" button
+        recordBtn.addEventListener('click', () => {
+            // Start recording audio
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    // Collect audio chunks as the recording happens
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    // When the recording stops, create an audio blob
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioURL = URL.createObjectURL(audioBlob);
+
+                        // Store the audio in localStorage
+                        localStorage.setItem('voiceNote', audioURL);
+
+                        // Enable send button
+                        sendBtn.disabled = false;
+                    };
+
+                    mediaRecorder.start();
+                    recordBtn.disabled = true;  // Disable the record button while recording
+                    cancelBtn.disabled = false; // Enable cancel button
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
+        });
+
+        // Event listener for the "Cancel" button
+        cancelBtn.addEventListener('click', () => {
+            // Stop the recording and reset the buttons
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            resetButtons();
+        });
+
+        // Event listener for the "Send" button
+        sendBtn.addEventListener('click', () => {
+            if (audioURL) {
+                // Add the recorded voice note to the chat box
+                displayVoiceNote(audioURL);
+
+                // Remove the stored voice note from localStorage after sending
+                localStorage.removeItem('voiceNote');
+            }
+
+            // Reset the buttons after sending
+            resetButtons();
+        });
+
+        // Function to display the voice note in the chat box
+        function displayVoiceNote(url) {
+            const audio = new Audio(url);
+            const voiceMessage = document.createElement('div');
+            voiceMessage.classList.add('voice-message');
+            voiceMessage.innerHTML = `
+                <audio controls>
+                    <source src="${url}" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+            `;
+
+            // Add the voice message to the chat box
+            chatBox.appendChild(voiceMessage);
+
+            // Scroll to the bottom of the chat box
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Function to reset button states after a recording action
+        function resetButtons() {
+            recordBtn.disabled = false;
+            cancelBtn.disabled = true;
+            sendBtn.disabled = true;
+            audioChunks = [];  // Reset audio chunks
+        }
+    </script>
+</body>
+</html>
